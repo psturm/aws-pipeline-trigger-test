@@ -1,0 +1,38 @@
+version: '3.7'
+
+services:
+
+  db-init:
+    container_name: db-init
+    build:
+      dockerfile: ./Dockerfile
+      context: .
+    depends_on:
+      testdb:
+        condition: service_healthy
+    environment:
+      DB_URL: testdb
+      DB_PORT: 5432
+      DB_USERNAME: dev_user
+      DB_PASSWORD: SuP3rS3cr3t_123
+
+
+  testdb:
+    container_name: testdb
+    build:
+      context: ./.docker/postgres
+    environment:
+      POSTGRES_PASSWORD: postgres
+    healthcheck:
+      test: ["CMD-SHELL", "db-is-ready"]
+      interval: 1s
+      timeout: 120s
+      retries: 120
+      start_period: 1s
+    restart: unless-stopped
+
+
+
+networks:
+  testdb:
+    driver: bridge
